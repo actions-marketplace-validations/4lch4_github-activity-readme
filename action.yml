@@ -8,11 +8,11 @@ inputs:
     default: ${{ github.repository_owner }}
     required: false
   COMMIT_MSG:
-    description: "Commit message used while committing to the repo"
-    default: ":zap: Update README with the recent activity"
+    description: 'Commit message used while committing to the repo'
+    default: ':zap: Update README with the recent activity'
     required: false
   MAX_LINES:
-    description: "The maximum number of lines populated in your readme file"
+    description: 'The maximum number of lines populated in your readme file'
     default: 5
     required: false
 
