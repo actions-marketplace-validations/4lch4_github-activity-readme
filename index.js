@@ -8,6 +8,7 @@ const { Toolkit } = require('actions-toolkit')
 const GH_USERNAME = core.getInput('GH_USERNAME')
 const COMMIT_MSG = core.getInput('COMMIT_MSG')
 const MAX_LINES = core.getInput('MAX_LINES')
+
 /**
  * Returns the sentence case representation
  * @param {String} str - the string
@@ -37,6 +38,7 @@ const toUrlFormat = item => {
 
 /**
  * Execute shell command
+ *
  * @param {String} cmd - root command
  * @param {String[]} args - args to be passed along with
  *
@@ -47,9 +49,11 @@ const exec = (cmd, args = []) =>
   new Promise((resolve, reject) => {
     const app = spawn(cmd, args, { stdio: 'pipe' })
     let stdout = ''
+
     app.stdout.on('data', data => {
       stdout = data
     })
+
     app.on('close', code => {
       if (code !== 0 && !stdout.includes('nothing to commit')) {
         err = new Error(`Invalid status code: ${code}`)
@@ -104,10 +108,12 @@ Toolkit.run(
   async tools => {
     // Get the user's public events
     tools.log.debug(`Getting activity for ${GH_USERNAME}`)
+
     const events = await tools.github.activity.listPublicEventsForUser({
       username: GH_USERNAME,
       per_page: 100
     })
+
     tools.log.debug(
       `Activity for ${GH_USERNAME}, ${events.data.length} events found.`
     )
@@ -115,8 +121,10 @@ Toolkit.run(
     const content = events.data
       // Filter out any boring activity
       .filter(event => serializers.hasOwnProperty(event.type))
+
       // We only have five lines to work with
       .slice(0, MAX_LINES)
+
       // Call the serializer to construct a string
       .map(item => serializers[item.type](item))
 
@@ -179,8 +187,9 @@ Toolkit.run(
       .map((line, idx) => `${idx + 1}. ${line}`)
       .join('\n')
 
-    if (oldContent.trim() === newContent.trim())
+    if (oldContent.trim() === newContent.trim()) {
       tools.exit.success('No changes detected')
+    }
 
     startIdx++
 
@@ -189,11 +198,11 @@ Toolkit.run(
     if (!readmeActivitySection.length) {
       content.some((line, idx) => {
         // User doesn't have 5 public events
-        if (!line) {
-          return true
-        }
+        if (!line) return true
+
         readmeContent.splice(startIdx + idx, 0, `${idx + 1}. ${line}`)
       })
+
       tools.log.success('Wrote to README')
     } else {
       // It is likely that a newline is inserted after the <!--START_SECTION:activity--> comment (code formatter)
@@ -201,14 +210,14 @@ Toolkit.run(
 
       readmeActivitySection.some((line, idx) => {
         // User doesn't have 5 public events
-        if (!content[count]) {
-          return true
-        }
+        if (!content[count]) return true
+
         if (line !== '') {
           readmeContent[startIdx + idx] = `${count + 1}. ${content[count]}`
           count++
         }
       })
+
       tools.log.success('Updated README with the recent activity')
     }
 
@@ -222,6 +231,7 @@ Toolkit.run(
       tools.log.debug('Something went wrong')
       return tools.exit.failure(err)
     }
+
     tools.exit.success('Pushed to remote repository')
   },
   {
